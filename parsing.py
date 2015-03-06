@@ -1,4 +1,3 @@
-__author__ = 'budenkovss'
 # coding: utf8
 
 import csv as csv
