@@ -1,5 +1,4 @@
 # coding: utf8
-
 import pandas
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,26 +13,41 @@ from sklearn.decomposition import PCA
 # после подключения модулей
 OUTLIER_FRACTION = 0.01
 
-girls = pandas.read_csv('girls.csv', header=0)
+def load_data_from_csv(file_in='data\parsered1.csv', info=True):
+    # Загрузка из файла
+    try:
+        data = pandas.read_csv(file_in, header=0, sep=';')
+        # Посмотреть общую статистику
+        if info:
+            print data.info()
+            print data.describe()
+        return data
+    except:
+        print 'Error while loading file' + file_in
 
-#Посмотрим общую статистику
-#print  girls.info()
+def save_data_to_csv(file_out='data\\anomaly.csv', data=''):
+    out_file = open(file_out, "wb")
+    out_file.write(str(data).encode('utf8'))
+    out_file.close()
 
-#print  girls.describe()
+data_gibdd = load_data_from_csv('data\parsered1.csv', False)
 
-#print girls[['Month','Year']][girls['Waist'] == 89]
+# print data_gibdd[['date', 'num_death', 'num_hurt']][data_gibdd['num_death'] > 4 ]#| data_gibdd['num_hurt'] > 35]
+# print data_gibdd[['date', 'num_death', 'num_hurt']][data_gibdd['num_hurt'] > 35]
+# exit()
 
-# Для обучения модели оставим только численные параметры, кроме года.
-# Запишем их в массив NumPy girl_params, попутно преобразовав к типу float64.
+
+# Для обучения модели оставим только численные параметры, кроме даты и ссылки.
+# Запишем их в массив NumPy data_params, попутно преобразовав к типу float64.
 # Шкалируем данные так, чтобы все признаки лежали в диапазоне от -1 до 1.
-girl_params = np.array(girls.values[:,2:], dtype="float64")
-girl_params = scale(girl_params)
+data_params = np.array(data_gibdd.values[:, 1:8], dtype="float64")
+data_params = scale(data_params)
 
 # Далее выделяем 2 главных компонента в данных, чтоб их можно было отобразить.
 # Тут нам пригодилась библиотека Scikit-learn Principal Component Analysis (PCA).
-# Также нам не помешает сохранить число наших девушек
-X = PCA(n_components=2).fit_transform(girl_params)
-girls_num = X.shape[0]
+# Также нам не помешает сохранить число сводок
+X = PCA(n_components=2).fit_transform(data_params)
+days_num = X.shape[0]
 
 # Создаем экземпляр классификатора с гауссовым ядром и «скармливаем» ему данные.
 clf = svm.OneClassSVM(kernel="rbf")
@@ -51,8 +65,8 @@ is_inlier = dist_to_border > threshold
 
 # Отображение
 xx, yy = np.meshgrid(np.linspace(-7, 7, 500), np.linspace(-7, 7, 500))
-n_inliers = int((1. - OUTLIER_FRACTION) * girls_num)
-n_outliers = int(OUTLIER_FRACTION * girls_num)
+n_inliers = int((1. - OUTLIER_FRACTION) * days_num)
+n_outliers = int(OUTLIER_FRACTION * days_num)
 Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
 Z = Z.reshape(xx.shape)
 plt.title("Outlier detection")
@@ -72,4 +86,11 @@ plt.xlim((-7, 7))
 plt.ylim((-7, 7))
 plt.show()
 
-print girls[is_inlier == 0]
+print 'Снаружи'
+data_inlier = data_gibdd[is_inlier == 0]
+print data_inlier
+# save_data_to_csv(data=data_gibdd[is_inlier == 0])
+data_inlier.to_csv('data\\anomaly.csv', sep=';', encoding='utf-8')
+# print 'Внутри'
+# print data_gibdd[is_inlier == 1]
+
