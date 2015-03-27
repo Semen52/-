@@ -30,7 +30,7 @@ def save_data_to_csv(file_out='data\\anomaly.csv', data=''):
     out_file.write(str(data).encode('utf8'))
     out_file.close()
 
-data_gibdd = load_data_from_csv('data\parsered1.csv', False)
+data_gibdd = load_data_from_csv('data\parsered1.csv', True)
 
 # print data_gibdd[['date', 'num_death', 'num_hurt']][data_gibdd['num_death'] > 4 ]#| data_gibdd['num_hurt'] > 35]
 # print data_gibdd[['date', 'num_death', 'num_hurt']][data_gibdd['num_hurt'] > 35]
