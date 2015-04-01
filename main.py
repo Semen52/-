@@ -13,34 +13,57 @@ from sklearn.decomposition import PCA
 # после подключения модулей
 OUTLIER_FRACTION = 0.01
 
+
 def load_data_from_csv(file_in='data\parsered1.csv', info=True):
-    # Загрузка из файла
+    """
+    Load data from csv file.
+    :param file_in: input file.
+    :param info: show statistical information.
+    :return: DataFrame.
+    """
     try:
         data = pandas.read_csv(file_in, header=0, sep=';')
-        # Посмотреть общую статистику
         if info:
             print data.info()
             print data.describe()
         return data
-    except:
+    except Exception:
         print 'Error while loading file' + file_in
+
 
 def save_data_to_csv(file_out='data\\anomaly.csv', data=''):
     out_file = open(file_out, "wb")
     out_file.write(str(data).encode('utf8'))
     out_file.close()
 
-data_gibdd = load_data_from_csv('data\parsered1.csv', False)
+"""
+Script
+"""
+raw_data = load_data_from_csv('data\parsered1.csv', False)
 
-# print data_gibdd[['date', 'num_death', 'num_hurt']][data_gibdd['num_death'] > 4 ]#| data_gibdd['num_hurt'] > 35]
+# print raw_data[['date', 'num_dtp', 'num_death', 'num_hurt']] #[raw_data['num_death'] > 4]#| data_gibdd['num_hurt'] > 35]
 # print data_gibdd[['date', 'num_death', 'num_hurt']][data_gibdd['num_hurt'] > 35]
 # exit()
+# dates = raw_data['date']
+# print dates
+dtp_data = raw_data[['date', 'num_dtp', 'num_death', 'num_hurt']]
+dtp_data = dtp_data.sort_index(by=['date'])
+dtp_data = dtp_data.set_index('date')
 
+NCOLS = dtp_data.shape[1]
+dtp_data.plot(subplots=True, figsize=(10, 2 * NCOLS), title="DTP data on subplots", )
+plt.legend(loc="best")
+plt.show()
+
+pandas.rolling_mean(dtp_data['num_dtp'], window=30).plot(style='-g', grid=True)
+# dtp_data_num.plot() #kind='barh'
+plt.show()
+exit()
 
 # Для обучения модели оставим только численные параметры, кроме даты и ссылки.
 # Запишем их в массив NumPy data_params, попутно преобразовав к типу float64.
 # Шкалируем данные так, чтобы все признаки лежали в диапазоне от -1 до 1.
-data_params = np.array(data_gibdd.values[:, 1:8], dtype="float64")
+data_params = np.array(raw_data.values[:, 1:8], dtype="float64")
 data_params = scale(data_params)
 
 # Далее выделяем 2 главных компонента в данных, чтоб их можно было отобразить.
